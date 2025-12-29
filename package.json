@@ -1,0 +1,6 @@
+{
+  "name": "df-transformation",
+  "dependencies": {
+    "@dataform/core": "3.0.37"
+  }
+}
