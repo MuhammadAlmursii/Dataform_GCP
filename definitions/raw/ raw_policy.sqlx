@@ -1,0 +1,6 @@
+config {
+  type: "declaration",
+  schema: "raw",
+  name: "raw_policy",
+  description: "Raw CRM customers table"
+}

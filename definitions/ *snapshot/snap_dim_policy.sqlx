@@ -1,0 +1,31 @@
+config {
+    type: "incremental",
+    schema: "mart",
+    name: "dim_policy_scd",
+    description: "SCD Type 2 policy dimension",
+    tags: ["mart", "dimension", "scd"]
+}
+
+SELECT
+  policy_id,
+  customer_name,
+  city,
+  policy_type,
+  CURRENT_TIMESTAMP() AS valid_from,
+  TIMESTAMP('9999-12-31') AS valid_to,
+  TRUE AS is_current
+FROM
+  ${ref("staging", "stg_policy")} as stg_policy
+  ${
+      when(incremental(), `
+          WHERE NOT EXISTS (
+            SELECT 1
+            FROM ${self()} d
+            WHERE d.policy_id = stg_policy.policy_id
+              AND d.is_current = TRUE
+              AND d.customer_name = stg_policy.customer_name
+              AND d.city = stg_policy.city
+              AND d.policy_type = stg_policy.policy_type
+          )
+        `)
+  }

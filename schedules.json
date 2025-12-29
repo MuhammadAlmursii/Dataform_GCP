@@ -1,0 +1,26 @@
+{
+  "schedules": [
+    {
+      "name": "daily",
+      "options": {
+        "includeDependencies": false,
+        "fullRefresh": false
+      },
+      "cron": "* * * * *",
+      "notifications": [
+        {
+          "events": ["failure"],
+          "channels": ["email_malmursi"]
+        }
+      ]
+    }
+  ],
+  "notificationChannels": [
+    {
+      "name": "email_malmursi",
+      "email": {
+        "to": ["mohamed.almorsy1998@gmail.com"]
+      }
+    }
+  ]
+}

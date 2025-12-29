@@ -1,0 +1,49 @@
+
+  -- This is an example SQLX file to help you learn the basics of Dataform.
+  -- Visit https://cloud.google.com/dataform/docs/sql-workflows for more information on how to configure your SQL workflow.
+  -- You can delete this file, then commit and push your changes to your repository when you are ready.
+  -- Config blocks allow you to configure, document, and test your data assets.
+  -- The rest of a SQLX file contains your SELECT statement used to create the table.
+
+
+config {
+  type: "table",
+  schema: "staging",
+  name: "stg_policy",
+  description: "Cleaned and transformed policy & claims data from raw layer",
+  tags: ["staging", "policy"]
+}
+
+SELECT
+
+  policy_id,
+  claim_id,
+  INITCAP(customer_name) AS customer_name,
+
+  -- Mask email (PII)
+  REGEXP_REPLACE(email, r'(^.).*(@.*$)', r'\1***\2') AS email_masked,
+
+  -- Normalize phone (digits only)
+  REGEXP_REPLACE(phone, r'[^0-9]', '') AS phone_normalized,
+
+  -- Mask national ID
+  CONCAT(SUBSTR(national_id, 1, 3), '-XXXX-XXXX') AS national_id_masked,
+
+  DATE(date_of_birth) AS date_of_birth,
+  DATE(claim_date) AS claim_date,
+  DATE_DIFF(CURRENT_DATE(), DATE(date_of_birth), YEAR) AS customer_age,
+  SPLIT(address, ',')[SAFE_OFFSET(0)] AS city,
+  SPLIT(address, ',')[SAFE_OFFSET(1)] AS street,
+  UPPER(policy_type) AS policy_type,
+  CAST(claim_amount AS NUMERIC) AS claim_amount,
+  diagnosis,
+  hospital_name,
+  --CAST(claim_amount AS NUMERIC) AS claim_amount,
+  SAFE_CAST(claim_amount AS NUMERIC) > 10000 AS is_high_value_claim,
+  -- Data quality flags
+  email IS NOT NULL AS has_email,
+  phone IS NOT NULL AS has_phone
+
+FROM
+  ${ref("raw", "raw_policy")}
+
